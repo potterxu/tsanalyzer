@@ -1,0 +1,24 @@
+{
+  "go.inferGopath": false,
+  "go.buildOnSave": "workspace",
+  "go.lintOnSave": "package",
+  "go.vetOnSave": "package",
+  "go.buildTags": "",
+  "go.buildFlags": [],
+  "go.lintFlags": [],
+  "go.vetFlags": [],
+  "go.coverOnSave": false,
+  "go.useLanguageServer": true,
+  "go.alternateTools": {
+    "go-langserver": "gopls", 
+  },
+  "go.languageServerExperimentalFeatures": {
+    "format": true,
+    "autoComplete": true
+  },
+  "[go]": {
+      "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+      },
+  }
+}
