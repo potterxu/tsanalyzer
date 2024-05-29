@@ -7,6 +7,8 @@ import (
 	"bytes"
 	"encoding/csv"
 	"fmt"
+	"image/color"
+	"math"
 	"os"
 	"path/filepath"
 
@@ -15,6 +17,11 @@ import (
 	"github.com/potterxu/mpeg/pes"
 	"github.com/potterxu/mpeg/ts"
 	"github.com/spf13/cobra"
+
+	"gonum.org/v1/plot"
+	"gonum.org/v1/plot/plotter"
+	"gonum.org/v1/plot/plotutil"
+	"gonum.org/v1/plot/vg"
 )
 
 var (
@@ -128,12 +135,18 @@ var vbvCmd = &cobra.Command{
 			return smallerPcr + (largerPcr-smallerPcr)*int64(idx-smallerIdx)/int64(largerIdx-smallerIdx)
 		}
 
+		endIdx := len(pesInfos)
 		for i, _ := range pesInfos {
 			pesInfos[i].startPcr = interpolatePcr(pcrMap, pcrIdxs, pesInfos[i].startIndex)
 			pesInfos[i].endPcr = interpolatePcr(pcrMap, pcrIdxs, pesInfos[i].endIndex)
+			if pesInfos[i].startPcr == -1 || pesInfos[i].endPcr == -1 {
+				endIdx = i
+				break
+			}
 			pesInfos[i].startVbv = pesInfos[i].dts - pesInfos[i].startPcr
 			pesInfos[i].endVbv = pesInfos[i].dts - pesInfos[i].endPcr
 		}
+		pesInfos = pesInfos[:endIdx]
 
 		// print to file
 		if len(pesInfos) > 0 {
@@ -156,6 +169,47 @@ var vbvCmd = &cobra.Command{
 			for _, pes := range pesInfos {
 				writer.Write(pes.GetRow())
 			}
+			writer.Flush()
+
+			p := plot.New()
+			points := make(plotter.XYs, len(pesInfos)-1)
+			minPs := make(plotter.XYs, 0)
+			minP := plotter.XY{
+				X: 0,
+				Y: math.MaxFloat64,
+			}
+			maxPs := make(plotter.XYs, 0)
+			maxP := plotter.XY{
+				X: 0,
+				Y: -math.MaxFloat64,
+			}
+			for i, pes := range pesInfos[:len(pesInfos)-1] {
+				points[i].X = float64(i)
+				val := float64(pes.endVbv) / 300
+				points[i].Y = val
+				if val > maxP.Y {
+					maxPs = make(plotter.XYs, 0)
+					maxP.Y = val
+				}
+				if val == maxP.Y {
+					maxPs = append(maxPs, plotter.XY{X: float64(i), Y: val})
+				}
+
+				if val < minP.Y {
+					minPs = make(plotter.XYs, 0)
+					minP.Y = val
+				}
+				if val == minP.Y {
+					minPs = append(minPs, plotter.XY{X: float64(i), Y: val})
+				}
+			}
+			vbvLine, _ := plotter.NewLine(points)
+			vbvLine.LineStyle.Color = color.Black
+			p.Add(vbvLine)
+			p.Legend.Add("vbv", vbvLine)
+			_ = plotutil.AddLinePoints(p, "max", maxPs, "min", minPs)
+			pngPath := filepath.Join(logDir, fmt.Sprintf("%v_vbv.png", streamPID))
+			p.Save(4*vg.Inch, 4*vg.Inch, pngPath)
 		}
 	},
 }
