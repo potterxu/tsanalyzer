@@ -9,4 +9,5 @@ var (
 	ErrInvalidCellConfig   error = errors.New("invalid cell config")
 	ErrInvalidMethod       error = errors.New("invalid method")
 	ErrFailedToConnectCell error = errors.New("failed to connect cell")
+	ErrFailedToBuildGraph  error = errors.New("failed to build graph")
 )

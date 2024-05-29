@@ -17,8 +17,17 @@ type FileWriter struct {
 	filename string
 }
 
-func helpFileWriter() {
-	fmt.Printf("filewriter %v=val\n", icell.CONFIG_name)
+func FileWriterHelp() {
+	FileWriterHelpShort()
+	format := ` Properties:
+    %v: filename to write to
+
+`
+	fmt.Printf(format, icell.CONFIG_name)
+}
+
+func FileWriterHelpShort() {
+	fmt.Printf("(filewriter: write content to file)\n")
 }
 
 func NewFileWriter(stopChan chan bool, config icell.Config) (icell.ICell, error) {
@@ -30,7 +39,7 @@ func NewFileWriter(stopChan chan bool, config icell.Config) (icell.ICell, error)
 		c.filename = filename
 	} else {
 		fmt.Println("file name not provided for FileWriter")
-		helpFileWriter()
+		FileWriterHelp()
 		return nil, errinfo.ErrInvalidCellConfig
 	}
 	return c, nil
