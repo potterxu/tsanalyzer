@@ -20,5 +20,11 @@
       "editor.codeActionsOnSave": {
         "source.organizeImports": "explicit"
       },
-  }
+  },
+  "cSpell.words": [
+    "errinfo",
+    "filereader",
+    "filewriter",
+    "icell"
+  ]
 }
