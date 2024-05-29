@@ -19,8 +19,17 @@ type FileReader struct {
 	filename string
 }
 
-func helpFileReader() {
-	fmt.Printf("filereader %v=val\n", icell.CONFIG_name)
+func FileReaderHelp() {
+	FileReaderHelpShort()
+	format := ` Properties:
+    %v: filename to read from
+
+`
+	fmt.Printf(format, icell.CONFIG_name)
+}
+
+func FileReaderHelpShort() {
+	fmt.Printf("(filereader: read content from file)\n")
 }
 
 func NewFileReader(stopChan chan bool, config icell.Config) (icell.ICell, error) {
@@ -32,7 +41,7 @@ func NewFileReader(stopChan chan bool, config icell.Config) (icell.ICell, error)
 		c.filename = filename
 	} else {
 		fmt.Println("file name not provided for FileReader")
-		helpFileReader()
+		FileReaderHelp()
 		return nil, errinfo.ErrInvalidCellConfig
 	}
 	return c, nil

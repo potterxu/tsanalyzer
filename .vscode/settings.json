@@ -22,9 +22,16 @@
       },
   },
   "cSpell.words": [
+    "cellname",
+    "Chans",
     "errinfo",
     "filereader",
     "filewriter",
-    "icell"
+    "icell",
+    "inputfile",
+    "outputfile",
+    "packetized",
+    "potterxu",
+    "tsanalyzer"
   ]
 }
