@@ -1,6 +1,5 @@
 /*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-
+Copyright © 2024 Potter XU <xujingchuan1995@gmail.com>
 */
 package main
 
