@@ -93,15 +93,15 @@ func (c *Cell) StopCell() bool {
 func (c *Cell) Running() bool {
 	return c.running
 }
-func (c *Cell) GetInput() (interface{}, bool) {
+func (c *Cell) GetInput() (*CellUnit, bool) {
 	if c.input != nil {
 		v, ok := <-c.input.Channel()
 		return v, ok
 	}
 	return nil, false
 }
-func (c *Cell) PutOutput(data interface{}) {
+func (c *Cell) PutOutput(unit *CellUnit) {
 	if c.output != nil {
-		c.output.Channel() <- data
+		c.output.Channel() <- unit
 	}
 }
