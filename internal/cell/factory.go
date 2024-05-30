@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/potterxu/tsanalyzer/internal/cell/icell"
+	"github.com/potterxu/tsanalyzer/internal/cell/impl/converter"
 	"github.com/potterxu/tsanalyzer/internal/cell/impl/reader"
 	"github.com/potterxu/tsanalyzer/internal/cell/impl/writer"
 	"github.com/potterxu/tsanalyzer/internal/errinfo"
@@ -17,13 +18,14 @@ type factory struct {
 
 var (
 	readers    = []string{reader.FileReaderName}
-	converters = []string{}
+	converters = []string{converter.BytesConverterName}
 	processors = []string{}
 	writers    = []string{writer.FileWriterName}
 
 	factories = map[string]*factory{
-		reader.FileReaderName: {reader.NewFileReader, reader.FileReaderHelpShort, reader.FileReaderHelp},
-		writer.FileWriterName: {writer.NewFileWriter, writer.FileWriterHelpShort, writer.FileWriterHelp},
+		reader.FileReaderName:        {reader.NewFileReader, reader.FileReaderHelpShort, reader.FileReaderHelp},
+		converter.BytesConverterName: {converter.NewBytesConverter, converter.BytesConverterHelpShort, converter.BytesConverterHelp},
+		writer.FileWriterName:        {writer.NewFileWriter, writer.FileWriterHelpShort, writer.FileWriterHelp},
 	}
 )
 
