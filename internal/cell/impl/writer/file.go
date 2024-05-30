@@ -7,6 +7,7 @@ import (
 	"os"
 	"reflect"
 
+	"github.com/Comcast/gots/v2/packet"
 	"github.com/potterxu/tsanalyzer/internal/cell/icell"
 	"github.com/potterxu/tsanalyzer/internal/errinfo"
 )
@@ -74,8 +75,11 @@ func (c *FileWriter) Run() {
 			err = writeBytes(writer, data)
 		case string:
 			err = writeBytes(writer, []byte(data))
+		case packet.Packet:
+			err = writeBytes(writer, data[:])
 		default:
 			fmt.Printf("Invalid input type %v for FileWriter", reflect.TypeOf(unit.Data()))
+			err = errinfo.ErrInvalidUnitFormat
 		}
 		if err != nil {
 			break
