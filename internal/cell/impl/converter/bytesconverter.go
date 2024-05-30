@@ -32,7 +32,7 @@ type BytesConverter struct {
 
 func BytesConverterHelp() {
 	BytesConverterHelpShort()
-	format := ` Properties:
+	format := `  Properties:
     %v: output type %v
 
 `
@@ -40,7 +40,10 @@ func BytesConverterHelp() {
 }
 
 func BytesConverterHelpShort() {
-	fmt.Printf("( %v %s %v : convert byte array to type)\n", "->", BytesConverterName, "->")
+	fmt.Printf("%s: convert byte array to type\n", BytesConverterName)
+	fmt.Println("  ->cell: []byte")
+	fmt.Println("  cell->:", maps.Keys(bytesConverterOutputFormatMap))
+	fmt.Println("")
 }
 
 func NewBytesConverter(stopChan chan bool, config icell.Config) (icell.ICell, error) {

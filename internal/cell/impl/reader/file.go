@@ -22,7 +22,7 @@ type FileReader struct {
 
 func FileReaderHelp() {
 	FileReaderHelpShort()
-	format := ` Properties:
+	format := `  Properties:
     %v: filename to read from
 
 `
@@ -30,7 +30,10 @@ func FileReaderHelp() {
 }
 
 func FileReaderHelpShort() {
-	fmt.Printf("( %v %v %v : read content from file)\n", "", FileReaderName, "->")
+	fmt.Printf("%v : read content from file\n", FileReaderName)
+	fmt.Println("  ->cell: N/A")
+	fmt.Println("  cell->: []byte")
+	fmt.Println("")
 }
 
 func NewFileReader(stopChan chan bool, config icell.Config) (icell.ICell, error) {
