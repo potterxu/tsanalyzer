@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"slices"
 
 	"github.com/Comcast/gots/v2/packet"
 	"github.com/potterxu/tsanalyzer/internal/cell/icell"
 	"github.com/potterxu/tsanalyzer/internal/errinfo"
-	"golang.org/x/exp/maps"
 )
 
 const (
@@ -17,15 +17,14 @@ const (
 )
 
 var (
-	bytesConverterOutputFormatMap = map[string]reflect.Type{
-		"ts_packet": reflect.TypeFor[packet.Packet](),
-	}
+	bytesConverterInputFormats  = []icell.Format{icell.BYTE_SLICE}
+	bytesConverterOutputFormats = []icell.Format{icell.TS_PACKET}
 )
 
 type BytesConverter struct {
 	icell.Cell
 
-	outputFormat reflect.Type
+	outputFormat icell.Format
 
 	remainedBytes []byte
 }
@@ -33,16 +32,16 @@ type BytesConverter struct {
 func BytesConverterHelp() {
 	BytesConverterHelpShort()
 	format := `  Properties:
-    %v: output type %v
+    %v: output format %v
 
 `
-	fmt.Printf(format, icell.CONFIG_output_type, maps.Keys(bytesConverterOutputFormatMap))
+	fmt.Printf(format, icell.CONFIG_output_format, bytesConverterInputFormats)
 }
 
 func BytesConverterHelpShort() {
 	fmt.Printf("%s: convert byte array to type\n", BytesConverterName)
 	fmt.Println("  ->cell: []byte")
-	fmt.Println("  cell->:", maps.Keys(bytesConverterOutputFormatMap))
+	fmt.Println("  cell->:", bytesConverterOutputFormats)
 	fmt.Println("")
 }
 
@@ -53,16 +52,17 @@ func NewBytesConverter(stopChan chan bool, config icell.Config) (icell.ICell, er
 	c.ICell = c
 	c.Init(stopChan, config)
 
-	if outputType, ok := config[icell.CONFIG_output_type]; ok {
-		if outputFormat, ok := bytesConverterOutputFormatMap[outputType]; ok {
+	if of, ok := config[icell.CONFIG_output_format]; ok {
+		outputFormat := icell.Format(of)
+		if slices.Contains(bytesConverterOutputFormats, outputFormat) {
 			c.outputFormat = outputFormat
 		} else {
-			fmt.Printf("%v=%v not supported for BytesConverter", icell.CONFIG_output_type, outputType)
+			fmt.Printf("%v=%v not supported for BytesConverter", icell.CONFIG_output_format, outputFormat)
 			BytesConverterHelp()
 			return nil, errinfo.ErrInvalidCellConfig
 		}
 	} else {
-		fmt.Printf("%v not provided for BytesConverter\n", icell.CONFIG_output_type)
+		fmt.Printf("%v not provided for BytesConverter\n", icell.CONFIG_output_format)
 		BytesConverterHelp()
 		return nil, errinfo.ErrInvalidCellConfig
 	}
@@ -104,8 +104,7 @@ func (c *BytesConverter) process(buffer []byte) {
 	remain := len(data)
 
 	switch c.outputFormat {
-	case bytesConverterOutputFormatMap["ts_packet"]:
-
+	case icell.TS_PACKET:
 		reader := bytes.NewReader(data)
 		var pkt packet.Packet
 		for remain >= packet.PacketSize {

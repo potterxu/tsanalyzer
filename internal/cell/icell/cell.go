@@ -25,10 +25,10 @@ type Cell struct {
 type Config map[string]string
 
 const (
-	CONFIG_id          = "id"
-	CONFIG_name        = "name"
-	CONFIG_input_type  = "input_type"
-	CONFIG_output_type = "output_type"
+	CONFIG_id            = "id"
+	CONFIG_name          = "name"
+	CONFIG_input_format  = "input_format"
+	CONFIG_output_format = "output_format"
 )
 
 // Default interface method
