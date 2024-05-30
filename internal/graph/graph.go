@@ -53,6 +53,15 @@ func getCellInfos(gDesc string) ([]*cellInfo, bool) {
 		}
 		cellInfos[i] = cellInfo
 	}
+	fmt.Printf("Create pipeline: ")
+	for i, info := range cellInfos {
+		if i == 0 {
+			fmt.Printf("%v ", info.name)
+		} else {
+			fmt.Printf("-> %v ", info.name)
+		}
+	}
+	fmt.Println()
 	return cellInfos, true
 }
 
@@ -81,6 +90,7 @@ func NewGraph(gDesc string) (*Graph, error) {
 	for i, info := range cellInfos {
 		graph.stopChans[i] = make(chan bool, 1)
 		var err error
+		fmt.Printf("Create cell %v: %v\n", info.name, info.config)
 		graph.pipeline[i], err = cell.NewCell(info.name, graph.stopChans[i], info.config)
 		if err != nil {
 			return nil, err

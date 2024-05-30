@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	CHUNK_SIZE int = 188
+	FileReaderName string = "file_reader"
+	CHUNK_SIZE     int    = 188
 )
 
 type FileReader struct {
@@ -29,7 +30,7 @@ func FileReaderHelp() {
 }
 
 func FileReaderHelpShort() {
-	fmt.Printf("(filereader: read content from file)\n")
+	fmt.Printf("( %v %v %v : read content from file)\n", "", FileReaderName, "->")
 }
 
 func NewFileReader(stopChan chan bool, config icell.Config) (icell.ICell, error) {

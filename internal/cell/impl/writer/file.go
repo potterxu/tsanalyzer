@@ -11,6 +11,10 @@ import (
 	"github.com/potterxu/tsanalyzer/internal/errinfo"
 )
 
+const (
+	FileWriterName string = "file_writer"
+)
+
 type FileWriter struct {
 	icell.Cell
 
@@ -27,7 +31,7 @@ func FileWriterHelp() {
 }
 
 func FileWriterHelpShort() {
-	fmt.Printf("(filewriter: write content to file)\n")
+	fmt.Printf("( %v %v %v : write content to file)\n", "->", FileWriterName, "")
 }
 
 func NewFileWriter(stopChan chan bool, config icell.Config) (icell.ICell, error) {

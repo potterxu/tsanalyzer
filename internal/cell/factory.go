@@ -16,9 +16,14 @@ type factory struct {
 }
 
 var (
+	readers    = []string{reader.FileReaderName}
+	converters = []string{}
+	processors = []string{}
+	writers    = []string{writer.FileWriterName}
+
 	factories = map[string]*factory{
-		"filereader": {reader.NewFileReader, reader.FileReaderHelpShort, reader.FileReaderHelp},
-		"filewriter": {writer.NewFileWriter, writer.FileWriterHelpShort, writer.FileWriterHelp},
+		reader.FileReaderName: {reader.NewFileReader, reader.FileReaderHelpShort, reader.FileReaderHelp},
+		writer.FileWriterName: {writer.NewFileWriter, writer.FileWriterHelpShort, writer.FileWriterHelp},
 	}
 )
 
@@ -29,11 +34,38 @@ func NewCell(name string, stopChan chan bool, config map[string]string) (icell.I
 	return nil, errinfo.ErrCellNotSupport
 }
 
-func PrintCells() {
-	fmt.Println("===Available cells===")
-	for _, factory := range factories {
-		factory.shortHelp()
+func printCategoryShort(category string, cells []string) {
+	if len(cells) < 1 {
+		return
 	}
+	fmt.Printf("--- %v ---\n", category)
+	for _, name := range cells {
+		factories[name].shortHelp()
+	}
+}
+func PrintCells() {
+	fmt.Println("=== Available Cells ===")
+	printCategoryShort("readers", readers)
+	printCategoryShort("converters", converters)
+	printCategoryShort("processors", processors)
+	printCategoryShort("writers", writers)
+}
+
+func printCategory(category string, cells []string) {
+	if len(cells) < 1 {
+		return
+	}
+	fmt.Printf("--- %v ---\n", category)
+	for _, name := range cells {
+		factories[name].help()
+	}
+}
+func Help() {
+	fmt.Println("===Cell Help===")
+	printCategory("readers", readers)
+	printCategory("converters", converters)
+	printCategory("processors", processors)
+	printCategory("writers", writers)
 }
 
 func CellHelper(name string) {
@@ -42,12 +74,5 @@ func CellHelper(name string) {
 		factory.help()
 	} else {
 		fmt.Println("No valid cell", name)
-	}
-}
-
-func Help() {
-	fmt.Println("===Help for all cells===")
-	for _, factory := range factories {
-		factory.help()
 	}
 }
