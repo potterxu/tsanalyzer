@@ -14,6 +14,11 @@ const (
 	CHUNK_SIZE     int    = 188
 )
 
+var (
+	fileReaderInputFormats  []icell.Format = nil
+	fileReaderOutputFormats []icell.Format = []icell.Format{icell.BYTE_SLICE}
+)
+
 type FileReader struct {
 	icell.Cell
 
@@ -31,8 +36,8 @@ func FileReaderHelp() {
 
 func FileReaderHelpShort() {
 	fmt.Printf("%v : read content from file\n", FileReaderName)
-	fmt.Println("  ->cell: N/A")
-	fmt.Println("  cell->: []byte")
+	fmt.Println("  ->cell:", fileReaderInputFormats)
+	fmt.Println("  cell->:", fileReaderOutputFormats)
 	fmt.Println("")
 }
 
