@@ -66,6 +66,6 @@ func (c *FileReader) Run() {
 		if err != nil {
 			break
 		}
-		c.PutOutput(buffer[:cnt])
+		c.PutOutput(icell.NewCellUnit(buffer[:cnt]))
 	}
 }

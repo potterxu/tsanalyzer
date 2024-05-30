@@ -60,18 +60,18 @@ func (c *FileWriter) Run() {
 	writer := bufio.NewWriter(file)
 	defer writer.Flush()
 	for {
-		v, ok := c.GetInput()
+		unit, ok := c.GetInput()
 		if !ok {
 			break
 		}
 		var err error = nil
-		switch data := v.(type) {
+		switch data := unit.Data().(type) {
 		case []byte:
 			err = writeBytes(writer, data)
 		case string:
 			err = writeBytes(writer, []byte(data))
 		default:
-			fmt.Printf("Invalid input type %v for FileWriter", reflect.TypeOf(v))
+			fmt.Printf("Invalid input type %v for FileWriter", reflect.TypeOf(unit.Data()))
 		}
 		if err != nil {
 			break
