@@ -10,10 +10,19 @@ import (
 	"github.com/Comcast/gots/v2/packet"
 	"github.com/potterxu/tsanalyzer/internal/cell/icell"
 	"github.com/potterxu/tsanalyzer/internal/errinfo"
+	"golang.org/x/exp/maps"
 )
 
 const (
 	FileWriterName string = "file_writer"
+)
+
+var (
+	fileWriterInputFormatMap = map[string]reflect.Type{
+		"[]byte":    reflect.TypeFor[[]byte](),
+		"string":    reflect.TypeFor[string](),
+		"ts_packet": reflect.TypeFor[packet.Packet](),
+	}
 )
 
 type FileWriter struct {
@@ -24,7 +33,7 @@ type FileWriter struct {
 
 func FileWriterHelp() {
 	FileWriterHelpShort()
-	format := ` Properties:
+	format := `  Properties:
     %v: filename to write to
 
 `
@@ -32,7 +41,10 @@ func FileWriterHelp() {
 }
 
 func FileWriterHelpShort() {
-	fmt.Printf("( %v %v %v : write content to file)\n", "->", FileWriterName, "")
+	fmt.Printf("%v : write content to file\n", FileWriterName)
+	fmt.Println("  ->cell:", maps.Keys(fileWriterInputFormatMap))
+	fmt.Println("  cell->: N/A")
+	fmt.Println("")
 }
 
 func NewFileWriter(stopChan chan bool, config icell.Config) (icell.ICell, error) {
