@@ -90,14 +90,13 @@ func (c *FileReader) Run() {
 	defer file.Close()
 
 	reader := bufio.NewReader(file)
-	buffer := make([]byte, CHUNK_SIZE)
 	readBytes := uint64(0)
 	for {
+		buffer := make([]byte, CHUNK_SIZE)
 		cnt, err := reader.Read(buffer)
 		if err != nil {
 			break
 		}
-
 		if c.total > 0 && readBytes+uint64(cnt) >= c.total {
 			// reach maximum read size
 			cnt = int(c.total - readBytes)
