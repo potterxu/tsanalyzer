@@ -29,18 +29,20 @@ type FileWriter struct {
 
 func FileWriterHelp() {
 	FileWriterHelpShort()
-	format := `  Properties:
-    %v: filename to write to
-
+	format := `	IO:
+	  ->cell: %v
+	  cell->: %v
+	Properties:
+	  %v: filename to write to
 `
-	fmt.Printf(format, icell.CONFIG_name)
+	fmt.Printf(format,
+		fileWriterInputFormats,
+		fileWriterOutputFormats,
+		icell.CONFIG_name)
 }
 
 func FileWriterHelpShort() {
 	fmt.Printf("%v : write content to file\n", FileWriterName)
-	fmt.Println("  ->cell:", fileWriterInputFormats)
-	fmt.Println("  cell->:", fileWriterOutputFormats)
-	fmt.Println("")
 }
 
 func NewFileWriter(stopChan chan bool, config icell.Config) (icell.ICell, error) {
