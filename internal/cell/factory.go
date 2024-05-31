@@ -44,6 +44,7 @@ func printCategoryShort(category string, cells []string) {
 	for _, name := range cells {
 		factories[name].shortHelp()
 	}
+	fmt.Println()
 }
 func PrintCells() {
 	fmt.Println("=== Available Cells ===")
@@ -61,6 +62,7 @@ func printCategory(category string, cells []string) {
 	for _, name := range cells {
 		factories[name].help()
 	}
+	fmt.Println()
 }
 func Help() {
 	fmt.Println("===Cell Help===")
