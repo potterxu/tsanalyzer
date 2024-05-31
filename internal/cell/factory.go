@@ -4,29 +4,31 @@ import (
 	"fmt"
 
 	"github.com/potterxu/tsanalyzer/internal/cell/icell"
-	"github.com/potterxu/tsanalyzer/internal/cell/impl/converter"
-	"github.com/potterxu/tsanalyzer/internal/cell/impl/reader"
-	"github.com/potterxu/tsanalyzer/internal/cell/impl/writer"
 	"github.com/potterxu/tsanalyzer/internal/errinfo"
 )
 
+type cellType int
+
+const (
+	type_reader = iota
+	type_converter
+	type_processor
+	type_writer
+)
+
+type cell_ctor func(chan bool, icell.Config) (icell.ICell, error)
+type cell_short func()
+type cell_help func()
+
 type factory struct {
-	ctor      func(chan bool, icell.Config) (icell.ICell, error)
-	shortHelp func()
-	help      func()
+	ctor      cell_ctor
+	shortHelp cell_short
+	help      cell_help
 }
 
 var (
-	readers    = []string{reader.FileReaderName}
-	converters = []string{converter.BytesConverterName}
-	processors = []string{}
-	writers    = []string{writer.FileWriterName}
-
-	factories = map[string]*factory{
-		reader.FileReaderName:        {reader.NewFileReader, reader.FileReaderHelpShort, reader.FileReaderHelp},
-		converter.BytesConverterName: {converter.NewBytesConverter, converter.BytesConverterHelpShort, converter.BytesConverterHelp},
-		writer.FileWriterName:        {writer.NewFileWriter, writer.FileWriterHelpShort, writer.FileWriterHelp},
-	}
+	cells     = map[cellType][]string{}
+	factories = map[string]*factory{}
 )
 
 func NewCell(name string, stopChan chan bool, config map[string]string) (icell.ICell, error) {
@@ -48,10 +50,10 @@ func printCategoryShort(category string, cells []string) {
 }
 func PrintCells() {
 	fmt.Println("=== Available Cells ===")
-	printCategoryShort("readers", readers)
-	printCategoryShort("converters", converters)
-	printCategoryShort("processors", processors)
-	printCategoryShort("writers", writers)
+	printCategoryShort("readers", cells[type_reader])
+	printCategoryShort("converters", cells[type_converter])
+	printCategoryShort("processors", cells[type_processor])
+	printCategoryShort("writers", cells[type_writer])
 }
 
 func printCategory(category string, cells []string) {
@@ -66,10 +68,10 @@ func printCategory(category string, cells []string) {
 }
 func Help() {
 	fmt.Println("===Cell Help===")
-	printCategory("readers", readers)
-	printCategory("converters", converters)
-	printCategory("processors", processors)
-	printCategory("writers", writers)
+	printCategory("readers", cells[type_reader])
+	printCategory("converters", cells[type_converter])
+	printCategory("processors", cells[type_processor])
+	printCategory("writers", cells[type_writer])
 }
 
 func CellHelper(name string) {
