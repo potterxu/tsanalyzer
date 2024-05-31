@@ -12,6 +12,7 @@
   "go.alternateTools": {
     "go-langserver": "gopls", 
   },
+  "go.testFlags": ["-v"],
   "go.languageServerExperimentalFeatures": {
     "format": true,
     "autoComplete": true
@@ -31,7 +32,10 @@
     "inputfile",
     "outputfile",
     "packetized",
+    "Pids",
     "potterxu",
+    "PUSI",
+    "Strs",
     "tsanalyzer"
   ]
 }
