@@ -32,12 +32,13 @@ type BytesConverter struct {
 func BytesConverterHelp() {
 	BytesConverterHelpShort()
 	format := `	IO:
-	  ->cell: []byte
+	  ->cell: %v
 	  cell->: %v
 	Properties:
 	  %v: output format %v
 `
 	fmt.Printf(format,
+		bytesConverterInputFormats,
 		bytesConverterOutputFormats,
 		icell.CONFIG_output_format,
 		bytesConverterInputFormats)
