@@ -23,6 +23,7 @@
       },
   },
   "cSpell.words": [
+    "adaptationfield",
     "cellname",
     "Chans",
     "errinfo",
@@ -33,10 +34,15 @@
     "inputfile",
     "outputfile",
     "packetized",
+    "pcrpid",
+    "pcrs",
     "Pids",
+    "Pkts",
     "potterxu",
     "PUSI",
+    "streampids",
     "Strs",
-    "tsanalyzer"
+    "tsanalyzer",
+    "vbvs"
   ]
 }
