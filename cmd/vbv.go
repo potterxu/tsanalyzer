@@ -13,6 +13,7 @@ import (
 var (
 	pcrPID     uint32
 	streamPIDs string
+	plot       bool
 )
 
 // vbvCmd represents the vbv command
@@ -29,8 +30,8 @@ var vbvCmd = &cobra.Command{
 			return
 		}
 		filename := args[0]
-		pipe := fmt.Sprintf("file_reader name=%v ! bytes_converter output_format=ts_packet ! vbv pcr=%v pids=%v dir=%v",
-			filename, pcrPID, streamPIDs, fmt.Sprintf("%v.log", filename))
+		pipe := fmt.Sprintf("file_reader name=%v ! bytes_converter output_format=ts_packet ! vbv pcr=%v pids=%v dir=%v plot=%v",
+			filename, pcrPID, streamPIDs, fmt.Sprintf("%v.log", filename), plot)
 		pipeArgs := strings.Split(pipe, " ")
 		pipeCmd.Run(nil, pipeArgs)
 	},
@@ -39,5 +40,6 @@ var vbvCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(vbvCmd)
 	vbvCmd.PersistentFlags().Uint32VarP(&pcrPID, "pcr", "p", 32, "pcr pid")
-	vbvCmd.PersistentFlags().StringVarP(&streamPIDs, "stream", "s", "32", "stream pid")
+	vbvCmd.PersistentFlags().StringVarP(&streamPIDs, "streams", "s", "32", "stream pids split by \",\"")
+	vbvCmd.PersistentFlags().BoolVar(&plot, "plot", false, "plot the results")
 }

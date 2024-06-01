@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"math"
 	"os"
 	"path"
 	"strconv"
@@ -364,21 +363,15 @@ func (c *Vbv) showResult() {
 			fmt.Println(err)
 			continue
 		}
-		maxVbv := int64(-math.MaxInt64)
-		minVbv := int64(math.MaxInt64)
 		for _, vbv := range c.vbvs[pid] {
-			if vbv.Dts != -1 {
-				maxVbv = max(maxVbv, vbv.Dts-vbv.EndPcr/300)
-				minVbv = min(minVbv, vbv.Dts-vbv.EndPcr/300)
-				if _, err := writer.WriteString(fmt.Sprintf("  [ %v , %v ] %v -> %v %v\n", vbv.Index, vbv.EndIndex, vbv.Dts, vbv.EndPcr/300, vbv.Dts-vbv.EndPcr/300)); err != nil {
-					fmt.Println(err)
-					break
-				}
-			}
 			if c.plot {
 				yAxis = append(yAxis, opts.LineData{
 					Value: vbv.Dts - vbv.EndPcr/300,
 				})
+			}
+			if _, err := writer.WriteString(fmt.Sprintf("  [ %v , %v ] %v -> %v %v\n", vbv.Index, vbv.EndIndex, vbv.Dts, vbv.EndPcr/300, vbv.Dts-vbv.EndPcr/300)); err != nil {
+				fmt.Println(err)
+				break
 			}
 		}
 		writer.Flush()
