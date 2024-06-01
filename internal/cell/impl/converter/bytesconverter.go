@@ -113,6 +113,10 @@ func (c *BytesConverter) process(buffer []byte) {
 			if _, err := io.ReadFull(reader, pkt[:]); err != nil {
 				break
 			}
+			if err := pkt.CheckErrors(); err != nil {
+				fmt.Println(err)
+				break
+			}
 			remain -= packet.PacketSize
 			c.PutOutput(icell.NewCellUnit(pkt))
 		}
