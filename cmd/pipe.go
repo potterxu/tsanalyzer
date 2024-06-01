@@ -53,7 +53,7 @@ func runPipe(args []string) {
 		return
 	}
 
-	if pipeListCellFlag {
+	if pipeListCellFlag || args == nil || len(args) == 0 {
 		cell.PrintCells()
 		return
 	}

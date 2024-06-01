@@ -49,6 +49,7 @@ func printCategoryShort(category string, cells []string) {
 	fmt.Println()
 }
 func PrintCells() {
+	printSyntax()
 	fmt.Println("=== Available Cells ===")
 	printCategoryShort("readers", cells[type_reader])
 	printCategoryShort("converters", cells[type_converter])
@@ -67,6 +68,7 @@ func printCategory(category string, cells []string) {
 	fmt.Println()
 }
 func Help() {
+	printSyntax()
 	fmt.Println("===Cell Help===")
 	printCategory("readers", cells[type_reader])
 	printCategory("converters", cells[type_converter])
@@ -81,4 +83,10 @@ func CellHelper(name string) {
 	} else {
 		fmt.Println("No valid cell", name)
 	}
+}
+
+func printSyntax() {
+	fmt.Println()
+	fmt.Println("Syntax: pipe cell prop1=val1 prop2=val2 ! cell2 prop1=val1 prop2=val2 ! ...")
+	fmt.Println()
 }
