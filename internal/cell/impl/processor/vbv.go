@@ -1,7 +1,10 @@
 package processor
 
 import (
+	"bufio"
 	"fmt"
+	"os"
+	"path"
 	"strconv"
 	"strings"
 
@@ -17,6 +20,7 @@ const (
 
 	Config_Vbv_Pids = "pids"
 	Config_Vbv_Pcr  = "pcr"
+	Config_Vbv_Dir  = "dir"
 )
 
 var (
@@ -32,12 +36,15 @@ func VbvHelp() {
 	Properties:
 	  %v: select pids to process, split by ","
 	  %v: pcr pid
+	  %v: output directory
 `
 	fmt.Printf(format,
 		vbvInputFormats,
 		vbvOutputFormats,
 		Config_Vbv_Pids,
-		Config_Vbv_Pcr)
+		Config_Vbv_Pcr,
+		Config_Vbv_Dir,
+	)
 }
 
 func VbvHelpShort() {
@@ -45,9 +52,10 @@ func VbvHelpShort() {
 }
 
 type Record struct {
-	Pid   int
-	Index int64
-	Pcr   int64
+	Pid    int
+	Index  int64
+	Pcr    int64
+	Packet packet.Packet
 }
 
 type VbvRecord struct {
@@ -65,22 +73,25 @@ type Vbv struct {
 	icell.Cell
 
 	// config
-	pids map[int]bool
-	pcr  int
+	pids      map[int]bool
+	pcr       int
+	outputDir string
 
 	// internal
-	accumulator ts.Accumulator
-	curVbv      [ts.MAX_PID + 1]*VbvRecord
-	lastPcr     *PcrRecord
+	accumulator    ts.Accumulator
+	pendingRecords []*Record
+	curVbv         [ts.MAX_PID + 1]*VbvRecord
+	lastPcr        *PcrRecord
 
 	vbvs [ts.MAX_PID + 1][]*VbvRecord
 }
 
 func NewVbv(stopChan chan bool, config icell.Config) (icell.ICell, error) {
 	c := &Vbv{
-		accumulator: ts.NewAccumulator(),
-		pids:        make(map[int]bool),
-		lastPcr:     nil,
+		accumulator:    ts.NewAccumulator(),
+		pids:           make(map[int]bool),
+		lastPcr:        nil,
+		pendingRecords: make([]*Record, 0),
 	}
 	c.ICell = c
 	c.Init(stopChan, config)
@@ -116,6 +127,13 @@ func NewVbv(stopChan chan bool, config icell.Config) (icell.ICell, error) {
 		fmt.Println("[vbv] missing processing pids")
 		return nil, errinfo.ErrInvalidCellConfig
 	}
+
+	if dir, ok := config[Config_Vbv_Dir]; ok {
+		c.outputDir = dir
+	} else {
+		fmt.Println("[vbv] output to console")
+	}
+
 	return c, nil
 }
 
@@ -134,10 +152,10 @@ workLoop:
 		}
 		switch data := unit.Data().(type) {
 		case packet.Packet:
-			if !c.processPcrPkt(data, index) {
+			if !c.processPkt(data, index) {
 				break workLoop
 			}
-			if !c.processVbvPkt(data, index) {
+			if !c.processPcrPkt(data, index) {
 				break workLoop
 			}
 		default:
@@ -149,64 +167,21 @@ workLoop:
 	c.showResult()
 }
 
-func (c *Vbv) processVbvPkt(pkt packet.Packet, index int64) bool {
+func (c *Vbv) processPkt(pkt packet.Packet, index int64) bool {
 	if err := pkt.CheckErrors(); err != nil {
 		fmt.Println("[vbv] packet error", err)
 		return false
 	}
-	pid := packet.Pid(&pkt)
-	if len(c.pids) > 0 {
-		if _, ok := c.pids[pid]; !ok {
-			return true
-		}
+	if _, ok := c.pids[packet.Pid(&pkt)]; !ok {
+		return true
 	}
+	c.pendingRecords = append(c.pendingRecords, &Record{
+		Pid:    packet.Pid(&pkt),
+		Index:  index,
+		Pcr:    -1,
+		Packet: pkt,
+	})
 
-	if c.curVbv[pid] == nil {
-		if !pkt.PayloadUnitStartIndicator() {
-			// wait for first payload unit start indicator
-			return true
-		} else {
-			c.curVbv[pid] = &VbvRecord{
-				Record: Record{
-					Pid:   pid,
-					Index: index,
-				},
-				EndIndex: index,
-			}
-		}
-	}
-
-	result, ready, err := c.accumulator.Add(pkt)
-	if err != nil {
-		fmt.Println("[vbv] accumulator error", err)
-		return false
-	}
-	if ready {
-		pes, err := pes.NewPESHeader(result.Data)
-		if err != nil {
-			fmt.Println("[vbv] pes error", err)
-			return false
-		}
-		c.curVbv[pid].Dts = -1
-		if pes.HasDTS() {
-			c.curVbv[pid].Dts = int64(pes.DTS())
-		} else if pes.HasPTS() {
-			c.curVbv[pid].Dts = int64(pes.PTS())
-		}
-		c.vbvs[pid] = append(c.vbvs[pid], c.curVbv[pid])
-		c.curVbv[pid] = &VbvRecord{
-			Record: Record{
-				Pid:   pid,
-				Index: index,
-				Pcr:   -1,
-			},
-			EndIndex: index,
-			EndPcr:   -1,
-			Dts:      -1,
-		}
-	}
-
-	c.curVbv[pid].EndIndex = index
 	return true
 }
 
@@ -239,7 +214,14 @@ func (c *Vbv) processPcrPkt(pkt packet.Packet, index int64) bool {
 
 			// interpolate vbv
 			if c.lastPcr != nil {
-				c.interpolateVbvPcr(newPcr)
+				for i, record := range c.pendingRecords {
+					c.pendingRecords[i].Pcr = c.lastPcr.Pcr + (record.Index-c.lastPcr.Index)*(newPcr.Pcr-c.lastPcr.Pcr)/(newPcr.Index-c.lastPcr.Index)
+				}
+				// all the pending packets have pcr now
+				// ready to process
+				if !c.processPendingPkts() {
+					return false
+				}
 			}
 			c.lastPcr = newPcr
 
@@ -248,29 +230,93 @@ func (c *Vbv) processPcrPkt(pkt packet.Packet, index int64) bool {
 	return true
 }
 
-func (c *Vbv) interpolateVbvPcr(pcr *PcrRecord) {
-	for pid := 0; pid < ts.MAX_PID; pid++ {
-		for i := len(c.vbvs[pid]) - 1; i >= 0; i-- {
-			vbv := c.vbvs[pid][i]
-			if vbv.EndIndex < c.lastPcr.Index {
-				break
-			}
-			if vbv.EndIndex >= c.lastPcr.Index && vbv.EndIndex <= pcr.Index {
-				fmt.Println("[vbv] interpolate", pid, vbv.Index, vbv.EndIndex, vbv.Dts, c.lastPcr.Pcr, pcr.Pcr)
-				vbv.EndPcr = c.lastPcr.Pcr + (vbv.EndIndex-c.lastPcr.Index)*(pcr.Pcr-c.lastPcr.Pcr)/(pcr.Index-c.lastPcr.Index)
+func (c *Vbv) processPendingPkts() bool {
+	for _, record := range c.pendingRecords {
+		pkt := record.Packet
+		index := record.Index
+		pid := record.Pid
+		pcr := record.Pcr
+
+		if c.curVbv[pid] == nil {
+			if !pkt.PayloadUnitStartIndicator() {
+				// wait for first payload unit start indicator
+				continue
+			} else {
+				c.curVbv[pid] = &VbvRecord{
+					Record: Record{
+						Pid:   pid,
+						Index: index,
+					},
+					EndIndex: index,
+					Dts:      -1,
+				}
 			}
 		}
+
+		result, ready, err := c.accumulator.Add(pkt)
+		if err != nil {
+			fmt.Println("[vbv] accumulator error", err)
+			return false
+		}
+		if ready {
+			pes, err := pes.NewPESHeader(result.Data)
+			if err != nil {
+				fmt.Println("[vbv] pes error", err)
+				return false
+			}
+			if pes.HasDTS() {
+				c.curVbv[pid].Dts = int64(pes.DTS())
+			} else if pes.HasPTS() {
+				c.curVbv[pid].Dts = int64(pes.PTS())
+			}
+			c.vbvs[pid] = append(c.vbvs[pid], c.curVbv[pid])
+			c.curVbv[pid] = &VbvRecord{
+				Record: Record{
+					Pid:   pid,
+					Index: index,
+					Pcr:   -1,
+				},
+				EndIndex: index,
+				EndPcr:   -1,
+				Dts:      -1,
+			}
+		}
+		c.curVbv[pid].EndIndex = index
+		c.curVbv[pid].EndPcr = pcr
 	}
+	c.pendingRecords = c.pendingRecords[:0]
+	return true
 }
 
 func (c *Vbv) showResult() {
+	if c.outputDir != "" {
+		os.MkdirAll(c.outputDir, 0755)
+	}
 	for pid := 0; pid < ts.MAX_PID; pid++ {
 		if len(c.vbvs[pid]) == 0 {
 			continue
 		}
-		fmt.Printf("pid %v\n", pid)
-		for _, vbv := range c.vbvs[pid] {
-			fmt.Printf("  [%v, %v] %v -> %v\n", vbv.Index, vbv.EndIndex, vbv.Dts*300, vbv.EndPcr)
+		var writer *bufio.Writer
+
+		if c.outputDir != "" {
+			filename := path.Join(c.outputDir, fmt.Sprintf("vbv_%v.txt", pid))
+			file, err := os.Create(filename)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			defer file.Close()
+			writer = bufio.NewWriter(file)
+		} else {
+			writer = bufio.NewWriter(os.Stdout)
 		}
+		writer.WriteString(fmt.Sprintf("pid %v\n", pid))
+		writer.WriteString("  [ index , endIndex ] dts -> pcr vbv\n")
+		for _, vbv := range c.vbvs[pid] {
+			if vbv.Dts != -1 {
+				writer.WriteString(fmt.Sprintf("  [ %v , %v ] %v -> %v %v\n", vbv.Index, vbv.EndIndex, vbv.Dts, vbv.EndPcr/300, vbv.Dts-vbv.EndPcr/300))
+			}
+		}
+		writer.Flush()
 	}
 }
