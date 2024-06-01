@@ -290,7 +290,10 @@ func (c *Vbv) processPendingPkts() bool {
 
 func (c *Vbv) showResult() {
 	if c.outputDir != "" {
-		os.MkdirAll(c.outputDir, 0755)
+		if err := os.MkdirAll(c.outputDir, 0755); err != nil {
+			fmt.Println(err)
+			return
+		}
 	}
 	for pid := 0; pid < ts.MAX_PID; pid++ {
 		if len(c.vbvs[pid]) == 0 {
@@ -310,11 +313,20 @@ func (c *Vbv) showResult() {
 		} else {
 			writer = bufio.NewWriter(os.Stdout)
 		}
-		writer.WriteString(fmt.Sprintf("pid %v\n", pid))
-		writer.WriteString("  [ index , endIndex ] dts -> pcr vbv\n")
+		if _, err := writer.WriteString(fmt.Sprintf("pid %v\n", pid)); err != nil {
+			fmt.Println(err)
+			continue
+		}
+		if _, err := writer.WriteString("  [ index , endIndex ] dts -> pcr vbv\n"); err != nil {
+			fmt.Println(err)
+			continue
+		}
 		for _, vbv := range c.vbvs[pid] {
 			if vbv.Dts != -1 {
-				writer.WriteString(fmt.Sprintf("  [ %v , %v ] %v -> %v %v\n", vbv.Index, vbv.EndIndex, vbv.Dts, vbv.EndPcr/300, vbv.Dts-vbv.EndPcr/300))
+				if _, err := writer.WriteString(fmt.Sprintf("  [ %v , %v ] %v -> %v %v\n", vbv.Index, vbv.EndIndex, vbv.Dts, vbv.EndPcr/300, vbv.Dts-vbv.EndPcr/300)); err != nil {
+					fmt.Println(err)
+					break
+				}
 			}
 		}
 		writer.Flush()

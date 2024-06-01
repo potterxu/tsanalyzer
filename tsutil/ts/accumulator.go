@@ -62,7 +62,9 @@ func (a *accumulator) Add(pkt packet.Packet) (*AccumulatorResult, bool, error) {
 		result = a.get(pid)
 		ready = true
 	}
-	a.add(pkt)
+	if err := a.add(pkt); err != nil {
+		return result, ready, err
+	}
 	return result, ready, nil
 }
 

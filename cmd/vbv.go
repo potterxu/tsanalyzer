@@ -23,11 +23,13 @@ var vbvCmd = &cobra.Command{
 	Short: "alias for pipe [file_reader ! bytes_converter ! vbv]",
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) != 1 {
-			cmd.Help()
+			if err := cmd.Help(); err != nil {
+				fmt.Println(err)
+			}
 			return
 		}
 		filename := args[0]
-		pipe := fmt.Sprintf("file_reader name=%v size=18800 ! bytes_converter output_format=ts_packet ! vbv pcr=%v pids=%v dir=%v",
+		pipe := fmt.Sprintf("file_reader name=%v ! bytes_converter output_format=ts_packet ! vbv pcr=%v pids=%v dir=%v",
 			filename, pcrPID, streamPIDs, fmt.Sprintf("%v.log", filename))
 		pipeArgs := strings.Split(pipe, " ")
 		pipeCmd.Run(nil, pipeArgs)

@@ -79,7 +79,7 @@ func (c *FileWriter) Run() {
 		if !ok {
 			break
 		}
-		var err error = nil
+		var err error
 		switch data := unit.Data().(type) {
 		case []byte:
 			err = writeBytes(writer, data)
