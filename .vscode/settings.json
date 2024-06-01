@@ -28,6 +28,7 @@
     "errinfo",
     "filereader",
     "filewriter",
+    "gots",
     "icell",
     "inputfile",
     "outputfile",
