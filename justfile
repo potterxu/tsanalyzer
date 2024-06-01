@@ -5,3 +5,6 @@ build:
 
 test:
     go test ./...
+
+lint:
+    act -j lint

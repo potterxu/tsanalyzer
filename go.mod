@@ -13,6 +13,7 @@ require (
 
 require (
 	github.com/32bitkid/mpeg v0.0.0-20180611234327-533afb480bd7 // indirect
+	github.com/go-echarts/go-echarts/v2 v2.3.3 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 )

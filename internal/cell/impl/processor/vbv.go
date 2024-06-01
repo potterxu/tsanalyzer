@@ -3,6 +3,8 @@ package processor
 import (
 	"bufio"
 	"fmt"
+	"io"
+	"math"
 	"os"
 	"path"
 	"strconv"
@@ -10,6 +12,9 @@ import (
 
 	"github.com/Comcast/gots/v2/packet"
 	"github.com/Comcast/gots/v2/pes"
+	"github.com/go-echarts/go-echarts/v2/charts"
+	"github.com/go-echarts/go-echarts/v2/opts"
+	"github.com/go-echarts/go-echarts/v2/types"
 	"github.com/potterxu/tsanalyzer/internal/cell/icell"
 	"github.com/potterxu/tsanalyzer/internal/errinfo"
 	"github.com/potterxu/tsanalyzer/tsutil/ts"
@@ -21,6 +26,7 @@ const (
 	Config_Vbv_Pids = "pids"
 	Config_Vbv_Pcr  = "pcr"
 	Config_Vbv_Dir  = "dir"
+	Config_Vbv_Plot = "plot"
 )
 
 var (
@@ -37,6 +43,7 @@ func VbvHelp() {
 	  %v: select pids to process, split by ","
 	  %v: pcr pid
 	  %v: output directory
+	  %v: plot the result
 `
 	fmt.Printf(format,
 		vbvInputFormats,
@@ -44,6 +51,7 @@ func VbvHelp() {
 		Config_Vbv_Pids,
 		Config_Vbv_Pcr,
 		Config_Vbv_Dir,
+		Config_Vbv_Plot,
 	)
 }
 
@@ -76,6 +84,7 @@ type Vbv struct {
 	pids      map[int]bool
 	pcr       int
 	outputDir string
+	plot      bool
 
 	// internal
 	accumulator    ts.Accumulator
@@ -132,6 +141,13 @@ func NewVbv(stopChan chan bool, config icell.Config) (icell.ICell, error) {
 		c.outputDir = dir
 	} else {
 		fmt.Println("[vbv] output to console")
+	}
+
+	if plot, ok := config[Config_Vbv_Plot]; ok {
+		if plot == "true" {
+			c.plot = true
+			fmt.Println("[vbv] plot the result")
+		}
 	}
 
 	return c, nil
@@ -300,19 +316,46 @@ func (c *Vbv) showResult() {
 			continue
 		}
 		var writer *bufio.Writer
-
 		if c.outputDir != "" {
 			filename := path.Join(c.outputDir, fmt.Sprintf("vbv_%v.txt", pid))
 			file, err := os.Create(filename)
 			if err != nil {
 				fmt.Println(err)
-				return
+				continue
 			}
 			defer file.Close()
 			writer = bufio.NewWriter(file)
 		} else {
 			writer = bufio.NewWriter(os.Stdout)
 		}
+
+		var plotWriter io.Writer
+		var lineChart *charts.Line
+		var yAxis []opts.LineData
+		if c.plot {
+			plotFilename := path.Join(c.outputDir, fmt.Sprintf("vbv_%v.html", pid))
+			plotFile, err := os.Create(plotFilename)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			defer plotFile.Close()
+			plotWriter = plotFile
+
+			lineChart = charts.NewLine()
+			lineChart.SetGlobalOptions(
+				charts.WithInitializationOpts(opts.Initialization{Theme: types.ThemeWesteros}),
+				charts.WithTitleOpts(opts.Title{
+					Title: "VBV for pid " + strconv.Itoa(pid),
+				}),
+			)
+			x := make([]string, len(c.vbvs[pid]))
+			for i := range x {
+				x[i] = strconv.Itoa(i)
+			}
+			lineChart.SetXAxis(x)
+		}
+
 		if _, err := writer.WriteString(fmt.Sprintf("pid %v\n", pid)); err != nil {
 			fmt.Println(err)
 			continue
@@ -321,14 +364,36 @@ func (c *Vbv) showResult() {
 			fmt.Println(err)
 			continue
 		}
+		maxVbv := int64(-math.MaxInt64)
+		minVbv := int64(math.MaxInt64)
 		for _, vbv := range c.vbvs[pid] {
 			if vbv.Dts != -1 {
+				maxVbv = max(maxVbv, vbv.Dts-vbv.EndPcr/300)
+				minVbv = min(minVbv, vbv.Dts-vbv.EndPcr/300)
 				if _, err := writer.WriteString(fmt.Sprintf("  [ %v , %v ] %v -> %v %v\n", vbv.Index, vbv.EndIndex, vbv.Dts, vbv.EndPcr/300, vbv.Dts-vbv.EndPcr/300)); err != nil {
 					fmt.Println(err)
 					break
 				}
 			}
+			if c.plot {
+				yAxis = append(yAxis, opts.LineData{
+					Value: vbv.Dts - vbv.EndPcr/300,
+				})
+			}
 		}
 		writer.Flush()
+
+		if c.plot {
+			lineChart.AddSeries("vbv", yAxis).
+				SetSeriesOptions(
+					charts.WithMarkPointNameTypeItemOpts(
+						opts.MarkPointNameTypeItem{Name: "max", Type: "max"},
+						opts.MarkPointNameTypeItem{Name: "min", Type: "min"},
+					),
+				)
+			if err := lineChart.Render(plotWriter); err != nil {
+				fmt.Println(err)
+			}
+		}
 	}
 }
