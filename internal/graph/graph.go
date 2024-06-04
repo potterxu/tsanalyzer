@@ -13,7 +13,11 @@ import (
 	"github.com/potterxu/tsanalyzer/internal/errinfo"
 )
 
-type Graph struct {
+type Graph interface {
+	Run()
+}
+
+type graph struct {
 	pipeline  []icell.ICell
 	stopChans []chan bool
 
@@ -77,12 +81,12 @@ func connectPipeline(pipeline []icell.ICell) error {
 	return nil
 }
 
-func NewGraph(gDesc string) (*Graph, error) {
+func NewGraph(gDesc string) (Graph, error) {
 	cellInfos, ok := getCellInfos(gDesc)
 	if !ok {
 		return nil, errinfo.ErrFailedToBuildGraph
 	}
-	graph := &Graph{
+	graph := &graph{
 		pipeline:  make([]icell.ICell, len(cellInfos)),
 		stopChans: make([]chan bool, len(cellInfos)),
 	}
@@ -104,7 +108,7 @@ func NewGraph(gDesc string) (*Graph, error) {
 	return graph, nil
 }
 
-func (g *Graph) Run() {
+func (g *graph) Run() {
 	// Start running cell from the end of pipeline
 	for i := len(g.pipeline) - 1; i >= 0; i-- {
 		g.wg.Add(1)
