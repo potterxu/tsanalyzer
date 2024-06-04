@@ -8,3 +8,6 @@ test:
 
 lint:
     act -j lint
+
+verify: lint
+    act -j build
