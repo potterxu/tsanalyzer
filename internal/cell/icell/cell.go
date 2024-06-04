@@ -48,9 +48,8 @@ func (c *Cell) Run() {
 	c.OnCellStart()
 	defer c.OnCellFinished()
 }
-func (c *Cell) Stop() error {
+func (c *Cell) Stop() {
 	c.running = false
-	return nil
 }
 func (c *Cell) SetInput(e *Edge) {
 	c.input = e

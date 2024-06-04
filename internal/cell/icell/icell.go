@@ -9,7 +9,7 @@ type ICell interface {
 	SetOutput(e *Edge)
 
 	// non go routine methods
-	Stop() error // force stop the cell
+	Stop() // force stop the cell
 
 	// go routine methods
 	Run() // go Run() to start the cell processing, should terminate automatically
