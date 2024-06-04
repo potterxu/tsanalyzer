@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	"github.com/google/uuid"
-	"github.com/potterxu/tsanalyzer/internal/errinfo"
 )
 
 // Every customized Cell should composite Cell struct
@@ -46,13 +45,11 @@ func (c *Cell) Connect(next ICell) error {
 }
 func (c *Cell) Run() {
 	fmt.Println("Please implement Run() method for cell", reflect.TypeOf(c.ICell).Elem().Name())
-	c.StartCell()
-	c.StopCell()
+	c.OnCellStart()
+	defer c.OnCellFinished()
 }
 func (c *Cell) Stop() error {
-	if !c.StopCell() {
-		return errinfo.ErrCellAlreadyStop
-	}
+	c.running = false
 	return nil
 }
 func (c *Cell) SetInput(e *Edge) {
@@ -72,23 +69,14 @@ func (c *Cell) Init(stopChan chan bool, config Config) {
 	}
 	c.running = false
 }
-func (c *Cell) StartCell() bool {
-	if !c.running {
-		c.running = true
-		return true
-	}
-	return false
+func (c *Cell) OnCellStart() {
+	c.running = true
 }
-func (c *Cell) StopCell() bool {
-	if c.running {
-		c.running = false
-		c.stopChan <- true
-		if c.output != nil {
-			c.output.Close()
-		}
-		return true
+func (c *Cell) OnCellFinished() {
+	c.stopChan <- true
+	if c.output != nil {
+		c.output.Close()
 	}
-	return false
 }
 func (c *Cell) Running() bool {
 	return c.running

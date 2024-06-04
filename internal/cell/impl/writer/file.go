@@ -61,10 +61,8 @@ func NewFileWriter(stopChan chan bool, config icell.Config) (icell.ICell, error)
 }
 
 func (c *FileWriter) Run() {
-	defer c.StopCell()
-	if !c.StartCell() {
-		return
-	}
+	c.OnCellStart()
+	defer c.OnCellFinished()
 
 	file, err := os.Create(c.filename)
 	if err != nil {

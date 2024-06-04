@@ -78,10 +78,8 @@ func NewFileReader(stopChan chan bool, config icell.Config) (icell.ICell, error)
 }
 
 func (c *FileReader) Run() {
-	defer c.StopCell()
-	if !c.StartCell() {
-		return
-	}
+	c.OnCellStart()
+	defer c.OnCellFinished()
 
 	file, err := os.Open(c.filename)
 	if err != nil {
@@ -91,7 +89,7 @@ func (c *FileReader) Run() {
 
 	reader := bufio.NewReader(file)
 	readBytes := uint64(0)
-	for {
+	for c.Running() {
 		buffer := make([]byte, CHUNK_SIZE)
 		cnt, err := reader.Read(buffer)
 		if err != nil {

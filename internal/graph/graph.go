@@ -119,7 +119,8 @@ func (g *Graph) Run() {
 	signal.Notify(signalChan, os.Interrupt)
 	go func() {
 		<-signalChan
-		os.Exit(1)
+		// stop the first cell of the pipeline to stop the whole graph
+		g.pipeline[0].Stop()
 	}()
 	g.wg.Wait()
 	fmt.Println("Graph finished")

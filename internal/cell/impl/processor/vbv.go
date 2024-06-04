@@ -153,10 +153,9 @@ func NewVbv(stopChan chan bool, config icell.Config) (icell.ICell, error) {
 }
 
 func (c *Vbv) Run() {
-	defer c.StopCell()
-	if !c.StartCell() {
-		return
-	}
+	defer c.OnCellFinished()
+	c.OnCellStart()
+	defer c.OnCellFinished()
 
 	index := int64(0)
 workLoop:

@@ -73,10 +73,8 @@ func NewBytesConverter(stopChan chan bool, config icell.Config) (icell.ICell, er
 }
 
 func (c *BytesConverter) Run() {
-	defer c.StopCell()
-	if !c.StartCell() {
-		return
-	}
+	c.OnCellStart()
+	defer c.OnCellFinished()
 
 	for {
 		unit, ok := c.GetInput()
