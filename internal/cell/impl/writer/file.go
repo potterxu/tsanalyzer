@@ -78,13 +78,15 @@ func (c *FileWriter) Run() {
 			break
 		}
 		var err error
-		switch data := unit.Data().(type) {
-		case []byte:
-			err = writeBytes(writer, data)
-		case string:
-			err = writeBytes(writer, []byte(data))
-		case packet.Packet:
-			err = writeBytes(writer, data[:])
+		switch reflect.TypeOf(unit.Data()) {
+		case icell.FormatToType[icell.BYTE_SLICE]:
+			err = writeBytes(writer, unit.Data().([]byte))
+		case icell.FormatToType[icell.STRING]:
+			err = writeBytes(writer, []byte(unit.Data().(string)))
+		case icell.FormatToType[icell.TS_PACKET]:
+			data := unit.Data().(packet.Packet)
+			bytes := []byte(data[:])
+			err = writeBytes(writer, bytes)
 		default:
 			fmt.Printf("Invalid input type %v for FileWriter", reflect.TypeOf(unit.Data()))
 			err = errinfo.ErrInvalidUnitFormat

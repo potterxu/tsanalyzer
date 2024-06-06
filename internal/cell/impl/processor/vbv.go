@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -164,8 +165,9 @@ workLoop:
 		if !ok {
 			break
 		}
-		switch data := unit.Data().(type) {
-		case packet.Packet:
+		switch reflect.TypeOf(unit.Data()) {
+		case icell.FormatToType[icell.TS_PACKET]:
+			data := unit.Data().(packet.Packet)
 			if !c.processPkt(data, index) {
 				break workLoop
 			}
