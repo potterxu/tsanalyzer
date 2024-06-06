@@ -14,6 +14,8 @@ import (
 
 const (
 	BytesConverterName string = "bytes_converter"
+
+	config_bytesconverter_outputformat string = "output_format"
 )
 
 var (
@@ -40,7 +42,7 @@ func BytesConverterHelp() {
 	fmt.Printf(format,
 		bytesConverterInputFormats,
 		bytesConverterOutputFormats,
-		icell.CONFIG_output_format,
+		config_bytesconverter_outputformat,
 		bytesConverterInputFormats)
 }
 
@@ -55,17 +57,17 @@ func NewBytesConverter(stopChan chan bool, config icell.Config) (icell.ICell, er
 	c.ICell = c
 	c.Init(stopChan, config)
 
-	if of, ok := config[icell.CONFIG_output_format]; ok {
+	if of, ok := config[config_bytesconverter_outputformat]; ok {
 		outputFormat := icell.Format(of)
 		if slices.Contains(bytesConverterOutputFormats, outputFormat) {
 			c.outputFormat = outputFormat
 		} else {
-			fmt.Printf("%v=%v not supported for BytesConverter", icell.CONFIG_output_format, outputFormat)
+			fmt.Printf("%v=%v not supported for BytesConverter", config_bytesconverter_outputformat, outputFormat)
 			BytesConverterHelp()
 			return nil, errinfo.ErrInvalidCellConfig
 		}
 	} else {
-		fmt.Printf("%v not provided for BytesConverter\n", icell.CONFIG_output_format)
+		fmt.Printf("%v not provided for BytesConverter\n", config_bytesconverter_outputformat)
 		BytesConverterHelp()
 		return nil, errinfo.ErrInvalidCellConfig
 	}

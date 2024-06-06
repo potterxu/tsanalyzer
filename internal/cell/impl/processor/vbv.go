@@ -23,10 +23,10 @@ import (
 const (
 	VbvName string = "vbv"
 
-	Config_Vbv_Pids = "pids"
-	Config_Vbv_Pcr  = "pcr"
-	Config_Vbv_Dir  = "dir"
-	Config_Vbv_Plot = "plot"
+	config_vbv_pids = "pids"
+	config_vbv_pcr  = "pcr"
+	config_vbv_dir  = "dir"
+	config_vbv_plot = "plot"
 )
 
 var (
@@ -48,10 +48,10 @@ func VbvHelp() {
 	fmt.Printf(format,
 		vbvInputFormats,
 		vbvOutputFormats,
-		Config_Vbv_Pids,
-		Config_Vbv_Pcr,
-		Config_Vbv_Dir,
-		Config_Vbv_Plot,
+		config_vbv_pids,
+		config_vbv_pcr,
+		config_vbv_dir,
+		config_vbv_plot,
 	)
 }
 
@@ -106,7 +106,7 @@ func NewVbv(stopChan chan bool, config icell.Config) (icell.ICell, error) {
 	c.Init(stopChan, config)
 
 	var err error
-	if pcrStr, ok := config[Config_Vbv_Pcr]; ok {
+	if pcrStr, ok := config[config_vbv_pcr]; ok {
 		if c.pcr, err = strconv.Atoi(pcrStr); err != nil {
 			fmt.Println("[vbv] invalid pcr pid", pcrStr)
 			return nil, errinfo.ErrInvalidCellConfig
@@ -116,7 +116,7 @@ func NewVbv(stopChan chan bool, config icell.Config) (icell.ICell, error) {
 		return nil, errinfo.ErrInvalidCellConfig
 	}
 
-	if pidsStr, ok := config[Config_Vbv_Pids]; ok {
+	if pidsStr, ok := config[config_vbv_pids]; ok {
 		pidStrs := strings.Split(pidsStr, ",")
 		if len(pidStrs) < 1 {
 			fmt.Println("[vbv] missing processing pids")
@@ -137,13 +137,13 @@ func NewVbv(stopChan chan bool, config icell.Config) (icell.ICell, error) {
 		return nil, errinfo.ErrInvalidCellConfig
 	}
 
-	if dir, ok := config[Config_Vbv_Dir]; ok {
+	if dir, ok := config[config_vbv_dir]; ok {
 		c.outputDir = dir
 	} else {
 		fmt.Println("[vbv] output to console")
 	}
 
-	if plot, ok := config[Config_Vbv_Plot]; ok {
+	if plot, ok := config[config_vbv_plot]; ok {
 		if plot == "true" {
 			c.plot = true
 			fmt.Println("[vbv] plot the result")

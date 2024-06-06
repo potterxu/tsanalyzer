@@ -24,8 +24,10 @@
   },
   "cSpell.words": [
     "adaptationfield",
+    "bytesconverter",
     "cellname",
     "Chans",
+    "echarts",
     "errinfo",
     "filereader",
     "filewriter",
@@ -37,6 +39,7 @@
     "mcastreader",
     "netreader",
     "outputfile",
+    "outputformat",
     "packetized",
     "pcrpid",
     "pcrs",
@@ -47,6 +50,8 @@
     "streampids",
     "Strs",
     "tsanalyzer",
-    "vbvs"
+    "tsutil",
+    "vbvs",
+    "Westeros"
   ]
 }
