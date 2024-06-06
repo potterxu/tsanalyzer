@@ -98,7 +98,11 @@ func (c *mcastReader) Run() {
 	for c.Running() {
 		// read network stream
 		buffer := make([]byte, 1316)
-		conn.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
+		err := conn.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
+		if err != nil {
+			fmt.Println("[mcast_reader] Error setting read deadline:", err)
+			return
+		}
 		n, _, err := conn.ReadFrom(buffer)
 		if err != nil {
 			if errors.Is(err, os.ErrDeadlineExceeded) {
