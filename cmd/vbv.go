@@ -18,10 +18,8 @@ var (
 
 // vbvCmd represents the vbv command
 var vbvCmd = &cobra.Command{
-	Use: `vbv -p pcrpid -s streampids <filename>
-	pcrpid is the pcr pid
-	streampids is the stream pids, split by ","`,
-	Short: "alias for pipe [file_reader ! bytes_converter ! vbv]",
+	Use:   "vbv <filename>",
+	Short: "Calculate for vbv, alias for pipe [file_reader ! bytes_converter ! vbv]",
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) != 1 {
 			if err := cmd.Help(); err != nil {
