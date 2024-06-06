@@ -17,7 +17,7 @@ type Edge struct {
 	dst ICell
 
 	unitType reflect.Type
-	channel  chan *CellUnit
+	channel  chan CellUnit
 	open     bool
 }
 
@@ -26,7 +26,7 @@ func newEdge(src, dst ICell) (*Edge, error) {
 		id:      uuid.NewString(),
 		src:     src,
 		dst:     dst,
-		channel: make(chan *CellUnit, EDGE_BUFFER),
+		channel: make(chan CellUnit, EDGE_BUFFER),
 		open:    true,
 	}
 	return e, nil
@@ -48,7 +48,7 @@ func (e *Edge) UnitType() reflect.Type {
 	return e.unitType
 }
 
-func (e *Edge) Channel() chan *CellUnit {
+func (e *Edge) Channel() chan CellUnit {
 	return e.channel
 }
 

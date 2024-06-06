@@ -80,14 +80,14 @@ func (c *Cell) OnCellFinished() {
 func (c *Cell) Running() bool {
 	return c.running
 }
-func (c *Cell) GetInput() (*CellUnit, bool) {
+func (c *Cell) GetInput() (CellUnit, bool) {
 	if c.input != nil {
 		v, ok := <-c.input.Channel()
 		return v, ok
 	}
 	return nil, false
 }
-func (c *Cell) PutOutput(unit *CellUnit) {
+func (c *Cell) PutOutput(unit CellUnit) {
 	if c.output != nil {
 		c.output.Channel() <- unit
 	}
