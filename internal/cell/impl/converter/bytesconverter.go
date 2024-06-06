@@ -117,7 +117,7 @@ func (c *BytesConverter) process(buffer []byte) {
 				break
 			}
 			remain -= packet.PacketSize
-			c.PutOutput(icell.NewCellUnit(pkt))
+			c.PutOutput(icell.NewCellUnit(pkt, icell.TS_PACKET))
 		}
 	default:
 		// not support, drop the buffer
