@@ -1,15 +1,19 @@
 package icell
 
-type CellUnit struct {
+type CellUnit interface {
+	Data() interface{}
+}
+
+type cellUnit struct {
 	data interface{}
 }
 
-func NewCellUnit(data interface{}) *CellUnit {
-	return &CellUnit{
+func NewCellUnit(data interface{}) *cellUnit {
+	return &cellUnit{
 		data: data,
 	}
 }
 
-func (u *CellUnit) Data() interface{} {
+func (u *cellUnit) Data() interface{} {
 	return u.data
 }
