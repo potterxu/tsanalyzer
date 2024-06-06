@@ -14,6 +14,8 @@ import (
 
 const (
 	FileWriterName string = "file_writer"
+
+	config_filewriter_name string = "name"
 )
 
 var (
@@ -38,7 +40,7 @@ func FileWriterHelp() {
 	fmt.Printf(format,
 		fileWriterInputFormats,
 		fileWriterOutputFormats,
-		icell.CONFIG_name)
+		config_filewriter_name)
 }
 
 func FileWriterHelpShort() {
@@ -50,7 +52,7 @@ func NewFileWriter(stopChan chan bool, config icell.Config) (icell.ICell, error)
 	c.ICell = c
 	c.Init(stopChan, config)
 
-	if filename, ok := config[icell.CONFIG_name]; ok {
+	if filename, ok := config[config_filewriter_name]; ok {
 		c.filename = filename
 	} else {
 		fmt.Println("file name not provided for FileWriter")

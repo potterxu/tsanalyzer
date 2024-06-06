@@ -13,9 +13,10 @@ import (
 const (
 	FileReaderName string = "file_reader"
 
-	Config_FileReader_Size = "size"
+	config_filereader_size = "size"
+	config_filereader_name = "name"
 
-	CHUNK_SIZE int = 1 << 10
+	chunk_size int = 1 << 10
 )
 
 var (
@@ -42,8 +43,8 @@ func FileReaderHelp() {
 	fmt.Printf(format,
 		fileReaderInputFormats,
 		fileReaderOutputFormats,
-		icell.CONFIG_name,
-		Config_FileReader_Size)
+		config_filereader_name,
+		config_filereader_size)
 }
 
 func FileReaderHelpShort() {
@@ -57,7 +58,7 @@ func NewFileReader(stopChan chan bool, config icell.Config) (icell.ICell, error)
 	c.ICell = c
 	c.Init(stopChan, config)
 
-	if filename, ok := config[icell.CONFIG_name]; ok {
+	if filename, ok := config[config_filereader_name]; ok {
 		c.filename = filename
 	} else {
 		fmt.Println("file name not provided for FileReader")
@@ -65,7 +66,7 @@ func NewFileReader(stopChan chan bool, config icell.Config) (icell.ICell, error)
 		return nil, errinfo.ErrInvalidCellConfig
 	}
 
-	if tStr, ok := config[Config_FileReader_Size]; ok {
+	if tStr, ok := config[config_filereader_size]; ok {
 		t, err := strconv.ParseUint(tStr, 10, 64)
 		if err != nil {
 			fmt.Println("[file_reader] invalid size", tStr)
@@ -90,7 +91,7 @@ func (c *FileReader) Run() {
 	reader := bufio.NewReader(file)
 	readBytes := uint64(0)
 	for c.Running() {
-		buffer := make([]byte, CHUNK_SIZE)
+		buffer := make([]byte, chunk_size)
 		cnt, err := reader.Read(buffer)
 		if err != nil {
 			break

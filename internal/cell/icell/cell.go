@@ -24,10 +24,7 @@ type Cell struct {
 type Config map[string]string
 
 const (
-	CONFIG_id            = "id"
-	CONFIG_name          = "name"
-	CONFIG_input_format  = "input_format"
-	CONFIG_output_format = "output_format"
+	config_cel_id = "id"
 )
 
 // Default interface method
@@ -61,7 +58,7 @@ func (c *Cell) SetOutput(e *Edge) {
 // General method for custom cells to control the flow
 func (c *Cell) Init(stopChan chan bool, config Config) {
 	c.stopChan = stopChan
-	if v, ok := config[CONFIG_id]; ok {
+	if v, ok := config[config_cel_id]; ok {
 		c.id = v
 	} else {
 		c.id = uuid.New().String()
