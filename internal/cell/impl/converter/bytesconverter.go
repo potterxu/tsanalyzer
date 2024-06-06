@@ -82,9 +82,9 @@ func (c *BytesConverter) Run() {
 			break
 		}
 		var err error = nil
-		switch data := unit.Data().(type) {
-		case []byte:
-			c.process(data)
+		switch reflect.TypeOf(unit.Data()) {
+		case icell.FormatToType[icell.BYTE_SLICE]:
+			c.process(unit.Data().([]byte))
 		default:
 			fmt.Printf("Invalid input type %v for BytesConverter", reflect.TypeOf(unit.Data()))
 			err = errinfo.ErrInvalidUnitFormat
