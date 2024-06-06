@@ -13,6 +13,7 @@ func init() {
 	register(type_converter, converter.BytesConverterName, converter.NewBytesConverter, converter.BytesConverterHelpShort, converter.BytesConverterHelp)
 	register(type_writer, writer.FileWriterName, writer.NewFileWriter, writer.FileWriterHelpShort, writer.FileWriterHelp)
 	register(type_processor, processor.VbvName, processor.NewVbv, processor.VbvHelpShort, processor.VbvHelp)
+	register(type_reader, reader.McastReaderName, reader.NewMcastReader, reader.McastReaderHelpShort, reader.McastReaderHelp)
 }
 
 func register(t cellType, name string, ctor cell_ctor, short cell_short, help cell_help) {
