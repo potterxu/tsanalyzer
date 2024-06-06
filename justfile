@@ -11,3 +11,6 @@ lint:
 
 verify: lint
     act -j build
+
+readme:
+    act -j validate_links
