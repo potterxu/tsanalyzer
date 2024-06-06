@@ -98,10 +98,10 @@ func (c *FileReader) Run() {
 		if c.total > 0 && readBytes+uint64(cnt) >= c.total {
 			// reach maximum read size
 			cnt = int(c.total - readBytes)
-			c.PutOutput(icell.NewCellUnit(buffer[:cnt]))
+			c.PutOutput(icell.NewCellUnit(buffer[:cnt], icell.BYTE_SLICE))
 			break
 		}
-		c.PutOutput(icell.NewCellUnit(buffer[:cnt]))
+		c.PutOutput(icell.NewCellUnit(buffer[:cnt], icell.BYTE_SLICE))
 		readBytes += uint64(cnt)
 	}
 }
